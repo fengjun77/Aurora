@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public class Player_FallState : EntityState
+public class Player_FallState : Player_AirState
 {
     public Player_FallState(Player player, StateMachine stateMachine, string animBoolName) : base(player, stateMachine, animBoolName)
     {
@@ -9,10 +9,15 @@ public class Player_FallState : EntityState
     public override void Update()
     {
         base.Update();
+
+        if(player.isWall)
+        {
+            stateMachine.ChangeState(player.wallSlideState);
+        }
         
-        // if (player.IsGrounded())
-        // {
-        //     stateMachine.ChangeState(player.idleState);
-        // }
+        if(player.isGround)
+        {
+            stateMachine.ChangeState(player.idleState);
+        }
     }
 }

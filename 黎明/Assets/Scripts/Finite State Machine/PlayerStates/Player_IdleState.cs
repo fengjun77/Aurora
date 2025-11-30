@@ -10,6 +10,7 @@ public class Player_IdleState : Player_GroundState
     {
         base.Enter();
         // Additional logic for entering idle state
+        player.SetVelocity(0, rb.linearVelocity.y);
     }
 
     public override void Update()

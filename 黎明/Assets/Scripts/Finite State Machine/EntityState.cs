@@ -38,6 +38,6 @@ public abstract class EntityState
     public virtual void Exit()
     {
         anim.SetBool(animBoolName, false);
-        Debug.Log("我退出了" + animBoolName);
+        //Debug.Log("我退出了" + animBoolName);
     }
 }
