@@ -10,6 +10,8 @@ public abstract class EntityState
     protected Rigidbody2D rb;
     protected PlayerInputSet input;
 
+    protected float startTime;
+
     //初始化状态
     public EntityState(Player player, StateMachine stateMachine, string animBoolName)
     {
@@ -31,7 +33,14 @@ public abstract class EntityState
     //状态中
     public virtual void Update()
     {
+        startTime -= Time.deltaTime;
         anim.SetFloat("yVelocity", rb.linearVelocity.y);
+
+        //检测冲刺输入
+        if(input.Player.Dash.WasPerformedThisFrame() && CanDash())
+        {
+            stateMachine.ChangeState(player.dashState);
+        }
         //Debug.Log("我正在" + animBoolName);
     }
     //退出状态
@@ -39,5 +48,13 @@ public abstract class EntityState
     {
         anim.SetBool(animBoolName, false);
         //Debug.Log("我退出了" + animBoolName);
+    }
+
+    private bool CanDash()
+    {
+        if(player.isWall || stateMachine.currentState == player.dashState)
+            return false;
+
+        return true;
     }
 }

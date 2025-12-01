@@ -14,18 +14,24 @@ public class Player : MonoBehaviour
     public Player_JumpState jumpState{ get; private set; }
     public Player_FallState fallState{ get; private set; }
     public Player_WallSlideState wallSlideState{ get; private set; }
-
+    public Player_WallJumpState wallJumpState{ get; private set; }
+    public Player_DashState dashState{ get; private set; }
     #endregion
 
     [Header("基础参数")]
     public float moveSpeed;
     public float jumpForce;
+    public Vector2 wallJumpForce;
+    //冲刺相关
+    public float dashDuration = 0.25f;
+    public float dashSpeed = 20f;
+
     [Range(0,1)]
     public float inAirMoveMultiplier;
     [Range(0,1)]
     public float wallSlideMultiplier;
     private bool facingRight = true;
-    private int facingDir = 1;
+    public int facingDir{ get; private set; } = 1;
 
     [Header("碰撞检测")]
     [SerializeField]
@@ -53,6 +59,8 @@ public class Player : MonoBehaviour
         jumpState = new Player_JumpState(this,stateMachine,"jumpFall");
         fallState = new Player_FallState(this,stateMachine,"jumpFall");
         wallSlideState = new Player_WallSlideState(this,stateMachine,"wallSlide");
+        wallJumpState = new Player_WallJumpState(this,stateMachine,"jumpFall");
+        dashState = new Player_DashState(this,stateMachine,"dash");
     }
 
     void OnEnable()
@@ -91,7 +99,7 @@ public class Player : MonoBehaviour
         }
     }
 
-    private void Flip()
+    public void Flip()
     {
         transform.Rotate(0f, 180f, 0f);
         facingRight = !facingRight;
