@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 
 public class Player : MonoBehaviour
@@ -16,15 +17,24 @@ public class Player : MonoBehaviour
     public Player_WallSlideState wallSlideState{ get; private set; }
     public Player_WallJumpState wallJumpState{ get; private set; }
     public Player_DashState dashState{ get; private set; }
+    public Player_BasicAttackState basicAttackState{ get; private set; }
     #endregion
 
     [Header("基础参数")]
     public float moveSpeed;
     public float jumpForce;
     public Vector2 wallJumpForce;
-    //冲刺相关
+    [Header("冲刺参数")]
     public float dashDuration = 0.25f;
     public float dashSpeed = 20f;
+    [Header("攻击参数")]
+    //攻击时的移动速度
+    public Vector2[] attackVelocity;
+    //攻击时速度持续时间
+    public float attackVelocityDuration;
+    public float comboResetTime = 1f;
+
+    private Coroutine attackCoroutine;
 
     [Range(0,1)]
     public float inAirMoveMultiplier;
@@ -61,6 +71,7 @@ public class Player : MonoBehaviour
         wallSlideState = new Player_WallSlideState(this,stateMachine,"wallSlide");
         wallJumpState = new Player_WallJumpState(this,stateMachine,"jumpFall");
         dashState = new Player_DashState(this,stateMachine,"dash");
+        basicAttackState = new Player_BasicAttackState(this,stateMachine,"basicAttack");
     }
 
     void OnEnable()
@@ -116,6 +127,24 @@ public class Player : MonoBehaviour
     {
         Gizmos.DrawLine(transform.position, transform.position + Vector3.down * groundCheckDistance);
         Gizmos.DrawLine(transform.position, transform.position + Vector3.right * (facingDir * wallCheckDistance));
+    }
+
+    public void CallAnimationTrigger()
+    {
+        stateMachine.currentState.CallAnimationTrigger();
+    }
+
+    public void StartAttackCoroutine()
+    {
+        if(attackCoroutine != null)
+            StopCoroutine(attackCoroutine);
+        attackCoroutine = StartCoroutine(ChangeAttackWithDelay());
+    }
+
+    private IEnumerator ChangeAttackWithDelay()
+    {
+        yield return new WaitForEndOfFrame();
+        stateMachine.ChangeState(basicAttackState);
     }
 
     void OnDisable()

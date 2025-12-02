@@ -130,6 +130,7 @@ GameObject:
   - component: {fileID: 320477003}
   - component: {fileID: 320477005}
   - component: {fileID: 320477004}
+  - component: {fileID: 320477006}
   m_Layer: 0
   m_Name: Animator
   m_TagString: Untagged
@@ -232,6 +233,18 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
+--- !u!114 &320477006
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 320477002}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3c4d5bac71b694349889c98084c01be8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::AnimationTrigger
 --- !u!1 &519420028
 GameObject:
   m_ObjectHideFlags: 0
@@ -1116,6 +1129,12 @@ MonoBehaviour:
   wallJumpForce: {x: 6, y: 15}
   dashDuration: 0.25
   dashSpeed: 20
+  attackVelocity:
+  - {x: 3, y: 1.5}
+  - {x: 1, y: 2}
+  - {x: 3, y: 4}
+  attackVelocityDuration: 0.1
+  comboResetTime: 1
   inAirMoveMultiplier: 0.8
   wallSlideMultiplier: 0.3
   groundCheckDistance: 1.38
