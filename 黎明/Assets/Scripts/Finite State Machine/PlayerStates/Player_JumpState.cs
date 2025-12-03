@@ -17,7 +17,7 @@ public class Player_JumpState : Player_AirState
     {
         base.Update();
         // Transition to fall state if vertical velocity is negative
-        if (rb.linearVelocity.y < 0)
+        if (rb.linearVelocity.y < 0 && stateMachine.currentState != player.jumpAttackState)
         {
             stateMachine.ChangeState(player.fallState);
         }

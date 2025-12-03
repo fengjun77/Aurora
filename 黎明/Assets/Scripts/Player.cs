@@ -18,18 +18,24 @@ public class Player : MonoBehaviour
     public Player_WallJumpState wallJumpState{ get; private set; }
     public Player_DashState dashState{ get; private set; }
     public Player_BasicAttackState basicAttackState{ get; private set; }
+    public Player_JumpAttackState jumpAttackState{ get; private set; }
     #endregion
 
     [Header("基础参数")]
     public float moveSpeed;
     public float jumpForce;
     public Vector2 wallJumpForce;
+    //允许跳跃攻击的最大距离
+    public float distanceCanJumpAttack;
+
     [Header("冲刺参数")]
     public float dashDuration = 0.25f;
     public float dashSpeed = 20f;
     [Header("攻击参数")]
     //攻击时的移动速度
     public Vector2[] attackVelocity;
+    //跳跃攻击参数
+    public Vector2 jumpAttackVelocity;
     //攻击时速度持续时间
     public float attackVelocityDuration;
     public float comboResetTime = 1f;
@@ -49,9 +55,20 @@ public class Player : MonoBehaviour
     [SerializeField]
     private float wallCheckDistance;
     [SerializeField]
+    private Transform handWallCheck;
+    [SerializeField]
+    private Transform footWallCheck;
+    //射线检测起点的Y轴偏移(玩家距离自己脚底的距离)
+    public float rayOffsetY;
+    //距离地面的射线长度(用于检测是否允许跳跃攻击,需要设计的稍微大一点)
+    [SerializeField]
+    private float groundDistance;
+
+    [SerializeField]
     private LayerMask groundLayer;
     public bool isGround{ get; private set; }
     public bool isWall{ get; private set; }
+    public bool canJumpAttack{ get; private set; }
     
 
     public Vector2 moveInput { get; private set; }  
@@ -72,6 +89,7 @@ public class Player : MonoBehaviour
         wallJumpState = new Player_WallJumpState(this,stateMachine,"jumpFall");
         dashState = new Player_DashState(this,stateMachine,"dash");
         basicAttackState = new Player_BasicAttackState(this,stateMachine,"basicAttack");
+        jumpAttackState = new Player_JumpAttackState(this,stateMachine,"jumpAttack");
     }
 
     void OnEnable()
@@ -88,7 +106,8 @@ public class Player : MonoBehaviour
 
     void Update()
     {
-        HandleGroundCheck();
+        HandleColCheck();
+        canJumpAttack = HandleGroundDistanceCheck();
         stateMachine.UpdateActiveState();
     }
 
@@ -117,16 +136,39 @@ public class Player : MonoBehaviour
         facingDir *= -1;
     }
 
-    private void HandleGroundCheck()
+    /// <summary>
+    /// 检测玩家是否接触地面和墙壁
+    /// </summary>
+    private void HandleColCheck()
     {
         isGround = Physics2D.Raycast(transform.position, Vector2.down, groundCheckDistance, groundLayer);
-        isWall = Physics2D.Raycast(transform.position, Vector2.right * facingDir, wallCheckDistance, groundLayer);
+        isWall = Physics2D.Raycast(handWallCheck.position, Vector2.right * facingDir, wallCheckDistance, groundLayer)
+               && Physics2D.Raycast(footWallCheck.position, Vector2.right * facingDir, wallCheckDistance, groundLayer);
+    }
+
+    /// <summary>
+    /// 检测玩家与地面的距离，决定是否允许跳跃攻击
+    /// </summary>
+    /// <returns></returns>
+    private bool HandleGroundDistanceCheck()
+    {
+        RaycastHit2D hit = Physics2D.Raycast(transform.position + new Vector3(0, rayOffsetY, 0), Vector2.down, groundDistance, groundLayer);
+        
+        if(hit.distance > distanceCanJumpAttack)
+            return true;
+
+        return false;
     }
 
     private void OnDrawGizmos()
     {
+        Gizmos.color = Color.yellow;
         Gizmos.DrawLine(transform.position, transform.position + Vector3.down * groundCheckDistance);
-        Gizmos.DrawLine(transform.position, transform.position + Vector3.right * (facingDir * wallCheckDistance));
+        Gizmos.color = Color.green;
+        Gizmos.DrawLine(handWallCheck.position, handWallCheck.position + Vector3.right * (facingDir * wallCheckDistance));
+        Gizmos.DrawLine(footWallCheck.position, footWallCheck.position + Vector3.right * (facingDir * wallCheckDistance));
+        Gizmos.color = Color.red;
+        Gizmos.DrawLine(transform.position + new Vector3(0, rayOffsetY, 0), transform.position + Vector3.down * groundDistance);
     }
 
     public void CallAnimationTrigger()
