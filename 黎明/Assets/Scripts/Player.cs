@@ -1,14 +1,10 @@
 using System.Collections;
 using UnityEngine;
 
-public class Player : MonoBehaviour
+public class Player : Entity
 {
-    public Animator anim{ get; private set; }
-    public Rigidbody2D rb{ get; private set; }
-
     public PlayerInputSet input{ get; private set; }
 
-    private StateMachine stateMachine;
     #region 角色状态
     public Player_IdleState idleState{ get; private set; }
     public Player_MoveState moveState{ get; private set; }
@@ -27,6 +23,10 @@ public class Player : MonoBehaviour
     public Vector2 wallJumpForce;
     //允许跳跃攻击的最大距离
     public float distanceCanJumpAttack;
+    [Range(0,1)]
+    public float inAirMoveMultiplier;
+    [Range(0,1)]
+    public float wallSlideMultiplier;
 
     [Header("冲刺参数")]
     public float dashDuration = 0.25f;
@@ -39,47 +39,23 @@ public class Player : MonoBehaviour
     //攻击时速度持续时间
     public float attackVelocityDuration;
     public float comboResetTime = 1f;
-
     private Coroutine attackCoroutine;
-
-    [Range(0,1)]
-    public float inAirMoveMultiplier;
-    [Range(0,1)]
-    public float wallSlideMultiplier;
-    private bool facingRight = true;
-    public int facingDir{ get; private set; } = 1;
-
-    [Header("碰撞检测")]
-    [SerializeField]
-    private float groundCheckDistance;
-    [SerializeField]
-    private float wallCheckDistance;
-    [SerializeField]
-    private Transform handWallCheck;
-    [SerializeField]
-    private Transform footWallCheck;
+    
     //射线检测起点的Y轴偏移(玩家距离自己脚底的距离)
     public float rayOffsetY;
     //距离地面的射线长度(用于检测是否允许跳跃攻击,需要设计的稍微大一点)
     [SerializeField]
     private float groundDistance;
 
-    [SerializeField]
-    private LayerMask groundLayer;
-    public bool isGround{ get; private set; }
-    public bool isWall{ get; private set; }
     public bool canJumpAttack{ get; private set; }
     
+    public Vector2 moveInput { get; private set; }
 
-    public Vector2 moveInput { get; private set; }  
-
-    void Awake()
+    protected override void Awake()
     {
-        anim = GetComponentInChildren<Animator>();
-        rb = GetComponent<Rigidbody2D>();
+        base.Awake();
 
         input = new PlayerInputSet();
-        stateMachine = new StateMachine();
 
         idleState = new Player_IdleState(this,stateMachine,"idle");
         moveState = new Player_MoveState(this,stateMachine,"move");
@@ -99,51 +75,23 @@ public class Player : MonoBehaviour
         input.Player.Movement.canceled += ctx => moveInput = Vector2.zero;
     }
 
-    void Start()
+    protected override void Start()
     {
+        base.Start();
+
         stateMachine.Init(idleState);
     }
 
-    void Update()
+    protected override void Update()
     {
-        HandleColCheck();
+        base.Update();
+
         canJumpAttack = HandleGroundDistanceCheck();
-        stateMachine.UpdateActiveState();
     }
 
-    public void SetVelocity(float x,float y)
+    void OnDisable()
     {
-        rb.linearVelocity = new Vector2(x, y);
-        HandleFlip(x);
-    }
-
-    private void HandleFlip(float x)
-    {
-        if(x > 0 && !facingRight)
-        {
-            Flip();
-        }
-        else if(x < 0 && facingRight)
-        {
-            Flip();
-        }
-    }
-
-    public void Flip()
-    {
-        transform.Rotate(0f, 180f, 0f);
-        facingRight = !facingRight;
-        facingDir *= -1;
-    }
-
-    /// <summary>
-    /// 检测玩家是否接触地面和墙壁
-    /// </summary>
-    private void HandleColCheck()
-    {
-        isGround = Physics2D.Raycast(transform.position, Vector2.down, groundCheckDistance, groundLayer);
-        isWall = Physics2D.Raycast(handWallCheck.position, Vector2.right * facingDir, wallCheckDistance, groundLayer)
-               && Physics2D.Raycast(footWallCheck.position, Vector2.right * facingDir, wallCheckDistance, groundLayer);
+        input.Disable();
     }
 
     /// <summary>
@@ -160,20 +108,12 @@ public class Player : MonoBehaviour
         return false;
     }
 
-    private void OnDrawGizmos()
+    protected override void OnDrawGizmos()
     {
-        Gizmos.color = Color.yellow;
-        Gizmos.DrawLine(transform.position, transform.position + Vector3.down * groundCheckDistance);
-        Gizmos.color = Color.green;
-        Gizmos.DrawLine(handWallCheck.position, handWallCheck.position + Vector3.right * (facingDir * wallCheckDistance));
-        Gizmos.DrawLine(footWallCheck.position, footWallCheck.position + Vector3.right * (facingDir * wallCheckDistance));
+        base.OnDrawGizmos();
+
         Gizmos.color = Color.red;
         Gizmos.DrawLine(transform.position + new Vector3(0, rayOffsetY, 0), transform.position + Vector3.down * groundDistance);
-    }
-
-    public void CallAnimationTrigger()
-    {
-        stateMachine.currentState.CallAnimationTrigger();
     }
 
     public void StartAttackCoroutine()
@@ -187,10 +127,5 @@ public class Player : MonoBehaviour
     {
         yield return new WaitForEndOfFrame();
         stateMachine.ChangeState(basicAttackState);
-    }
-
-    void OnDisable()
-    {
-        input.Disable();
     }
 }
