@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 
 public class Entity : MonoBehaviour
@@ -25,6 +26,9 @@ public class Entity : MonoBehaviour
     public bool isGround{ get; private set; }
     public bool isWall{ get; private set; }
 
+    private bool isKnocked;
+    private Coroutine knockbackCoroutine;
+
     protected virtual void Awake()
     {
         anim = GetComponentInChildren<Animator>();
@@ -45,10 +49,40 @@ public class Entity : MonoBehaviour
         stateMachine.UpdateActiveState();
     }
 
+    public virtual void EntityDeath()
+    {
+        
+    }
+
     public void SetVelocity(float x,float y)
     {
+        //如果处于击退状态，则不设置速度
+        if(isKnocked)
+            return;
+
         rb.linearVelocity = new Vector2(x, y);
         HandleFlip(x);
+    }
+
+    public void ReciveKnockback(Vector2 power, float duration)
+    {
+        if(knockbackCoroutine != null)
+            StopCoroutine(knockbackCoroutine);
+
+        knockbackCoroutine = StartCoroutine(KnockbackCoroutine(power,duration));
+    }
+
+    private IEnumerator KnockbackCoroutine(Vector2 power, float duration)
+    {
+        isKnocked = true;
+        //施加向后退方向的力
+        rb.linearVelocity = power;
+
+        yield return new WaitForSeconds(duration);
+
+        //让受力归零，让对象停住
+        rb.linearVelocity = Vector2.zero;
+        isKnocked = false;
     }
 
     public void HandleFlip(float x)
@@ -83,7 +117,10 @@ public class Entity : MonoBehaviour
             isWall = Physics2D.Raycast(handWallCheck.position, Vector2.right * facingDir, wallCheckDistance, groundLayer);
     }
 
-    
+    public void CurrentStateAnimationTrigger()
+    {
+        stateMachine.currentState.AnimationTrigger();
+    }
 
     protected virtual void OnDrawGizmos()
     {
@@ -95,10 +132,4 @@ public class Entity : MonoBehaviour
             Gizmos.DrawLine(footWallCheck.position, footWallCheck.position + Vector3.right * (facingDir * wallCheckDistance));
         
     }
-
-    public void CurrentStateAnimationTrigger()
-    {
-        stateMachine.currentState.AnimationTrigger();
-    }
-
 }

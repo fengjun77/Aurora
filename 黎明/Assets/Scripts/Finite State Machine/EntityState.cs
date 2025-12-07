@@ -28,15 +28,14 @@ public abstract class EntityState
     public virtual void Update()
     {
         startTime -= Time.deltaTime;
-        //Debug.Log("我正在" + animBoolName);
 
+        UpdateAnimationParameters();
+        //Debug.Log("我正在" + animBoolName);
     }
     //退出状态
     public virtual void Exit()
     {
         anim.SetBool(animBoolName, false);
-
-        UpdateAnimationParameters();
         //Debug.Log("我退出了" + animBoolName);
     }
 

@@ -1,9 +1,13 @@
+using System;
 using System.Collections;
 using UnityEngine;
 
 public class Player : Entity
 {
     public PlayerInputSet input{ get; private set; }
+
+    //玩家死亡事件
+    public static event Action OnPlayerDeath;
 
     #region 角色状态
     public Player_IdleState idleState{ get; private set; }
@@ -15,6 +19,7 @@ public class Player : Entity
     public Player_DashState dashState{ get; private set; }
     public Player_BasicAttackState basicAttackState{ get; private set; }
     public Player_JumpAttackState jumpAttackState{ get; private set; }
+    public Player_DeadState deadState {get; private set; }
     #endregion
 
     [Header("基础参数")]
@@ -66,6 +71,7 @@ public class Player : Entity
         dashState = new Player_DashState(this,stateMachine,"dash");
         basicAttackState = new Player_BasicAttackState(this,stateMachine,"basicAttack");
         jumpAttackState = new Player_JumpAttackState(this,stateMachine,"jumpAttack");
+        deadState = new Player_DeadState(this, stateMachine, "dead");
     }
 
     void OnEnable()
@@ -73,6 +79,8 @@ public class Player : Entity
         input.Enable();
         input.Player.Movement.performed += ctx => moveInput = ctx.ReadValue<Vector2>();
         input.Player.Movement.canceled += ctx => moveInput = Vector2.zero;
+
+
     }
 
     protected override void Start()
@@ -92,6 +100,14 @@ public class Player : Entity
     void OnDisable()
     {
         input.Disable();
+    }
+
+    public override void EntityDeath()
+    {
+        base.EntityDeath();
+        //调用所有订阅了的函数
+        OnPlayerDeath?.Invoke();
+        stateMachine.ChangeState(deadState);
     }
 
     /// <summary>
