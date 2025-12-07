@@ -3,6 +3,7 @@ using UnityEngine;
 //战斗相关
 public class Entity_Combat : MonoBehaviour
 {
+    private Entity_VFX entityVFX;
     public float damage;
 
     //检测中心点位置
@@ -11,6 +12,11 @@ public class Entity_Combat : MonoBehaviour
     [SerializeField] private float targetCheckRadius;
     //攻击目标的层
     [SerializeField] private LayerMask targetLayer;
+
+    void Awake()
+    {
+        entityVFX = GetComponent<Entity_VFX>();
+    }
 
     /// <summary>
     /// 执行攻击逻辑
@@ -21,12 +27,16 @@ public class Entity_Combat : MonoBehaviour
         foreach(var target in GetDetectedColliders())
         {
             IDamagable damagable = target.GetComponent<IDamagable>();
-            damagable?.TakeDamage(damage,transform);
+            if(damagable == null)
+                continue;
+
+            damagable.TakeDamage(damage,transform);
+            entityVFX.CreateHitVFX(target.transform);
         }
     }
 
     //获得攻击范围内的所有敌人
-    private Collider2D[] GetDetectedColliders()
+    protected Collider2D[] GetDetectedColliders()
     {
         return Physics2D.OverlapCircleAll(targetCheck.position,targetCheckRadius,targetLayer);
     }

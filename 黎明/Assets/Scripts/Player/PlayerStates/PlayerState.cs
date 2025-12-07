@@ -19,7 +19,7 @@ public abstract class PlayerState : EntityState
         base.Update();
 
         //检测冲刺输入
-        if(input.Player.Dash.WasPerformedThisFrame() && CanDash())
+        if(input.Player.Dash.WasPressedThisFrame() && CanDash())
         {
             stateMachine.ChangeState(player.dashState);
         }

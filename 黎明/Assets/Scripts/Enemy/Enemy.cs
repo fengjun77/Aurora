@@ -8,6 +8,7 @@ public class Enemy : Entity
     public Enemy_AttackState attackState;
     public Enemy_BattleState battleState;
     public Enemy_DeadState deadState;
+    public Enemy_StunnedState stunnedState;
 
 
     [Header("移动参数")]
@@ -23,6 +24,11 @@ public class Enemy : Entity
     public float battleTimeDuration = 5;
     public float retreatDistance = 1;
     public Vector2 retreatVelocity;
+
+    [Header("眩晕参数")]
+    public float stunnedDuration = 2f;
+    public Vector2 stunnedVelocity = new Vector2(7,7);
+    [SerializeField] protected bool canStunned;
 
     [Header("检测玩家参数")]
     [SerializeField] private LayerMask playerLayer;
@@ -54,6 +60,8 @@ public class Enemy : Entity
     {
         stateMachine.ChangeState(idleState);
     }
+
+    public void EnableCounterWindow(bool enable) => canStunned = enable;
 
     public override void EntityDeath()
     {

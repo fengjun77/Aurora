@@ -11,7 +11,11 @@ public class Entity_VFX : MonoBehaviour
     private Material originalMaterial;
     private Coroutine onDamageVFXCoroutine;
 
-    void Awake()
+    [Header("攻击动画")]
+    [SerializeField] private Color color;
+    [SerializeField] private GameObject hitVFX;
+
+    protected virtual void Awake()
     {
         sr = GetComponentInChildren<SpriteRenderer>();
         originalMaterial = sr.material;
@@ -33,5 +37,15 @@ public class Entity_VFX : MonoBehaviour
         sr.material = onDamageVFX;
         yield return new WaitForSeconds(onDamageVFXDuration);
         sr.material = originalMaterial;
+    }
+
+    /// <summary>
+    /// 创建攻击特效
+    /// </summary>
+    /// <param name="target">目标位置</param>
+    public void CreateHitVFX(Transform target)
+    {
+        GameObject vfx = Instantiate(hitVFX, target.position, Quaternion.identity);
+        vfx.GetComponentInChildren<SpriteRenderer>().color = color;
     }
 }

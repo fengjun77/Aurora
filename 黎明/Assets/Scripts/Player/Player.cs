@@ -20,6 +20,7 @@ public class Player : Entity
     public Player_BasicAttackState basicAttackState{ get; private set; }
     public Player_JumpAttackState jumpAttackState{ get; private set; }
     public Player_DeadState deadState {get; private set; }
+    public Player_CounterAttackState counterAttackState {get; private set; }
     #endregion
 
     [Header("基础参数")]
@@ -37,13 +38,15 @@ public class Player : Entity
     public float dashDuration = 0.25f;
     public float dashSpeed = 20f;
     [Header("攻击参数")]
-    //攻击时的移动速度
+    //攻击时的位移
     public Vector2[] attackVelocity;
     //跳跃攻击参数
     public Vector2 jumpAttackVelocity;
-    //攻击时速度持续时间
+    //攻击时造成的位移持续时间
     public float attackVelocityDuration;
+    //连击间隔最长时间（两次攻击间隔超过这个数值，则连击中断）
     public float comboResetTime = 1f;
+    
     private Coroutine attackCoroutine;
     
     //射线检测起点的Y轴偏移(玩家距离自己脚底的距离)
@@ -62,16 +65,18 @@ public class Player : Entity
 
         input = new PlayerInputSet();
 
-        idleState = new Player_IdleState(this,stateMachine,"idle");
-        moveState = new Player_MoveState(this,stateMachine,"move");
-        jumpState = new Player_JumpState(this,stateMachine,"jumpFall");
-        fallState = new Player_FallState(this,stateMachine,"jumpFall");
-        wallSlideState = new Player_WallSlideState(this,stateMachine,"wallSlide");
-        wallJumpState = new Player_WallJumpState(this,stateMachine,"jumpFall");
-        dashState = new Player_DashState(this,stateMachine,"dash");
-        basicAttackState = new Player_BasicAttackState(this,stateMachine,"basicAttack");
-        jumpAttackState = new Player_JumpAttackState(this,stateMachine,"jumpAttack");
+        idleState = new Player_IdleState(this, stateMachine, "idle");
+        moveState = new Player_MoveState(this, stateMachine, "move");
+        jumpState = new Player_JumpState(this, stateMachine, "jumpFall");
+        fallState = new Player_FallState(this, stateMachine, "jumpFall");
+        wallSlideState = new Player_WallSlideState(this, stateMachine, "wallSlide");
+        wallJumpState = new Player_WallJumpState(this, stateMachine, "jumpFall");
+        dashState = new Player_DashState(this, stateMachine, "dash");
+        basicAttackState = new Player_BasicAttackState(this, stateMachine, "basicAttack");
+        jumpAttackState = new Player_JumpAttackState(this, stateMachine, "jumpAttack");
+        counterAttackState = new Player_CounterAttackState(this, stateMachine, "counterAttack");
         deadState = new Player_DeadState(this, stateMachine, "dead");
+
     }
 
     void OnEnable()
