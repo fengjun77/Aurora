@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using UnityEngine;
 
@@ -28,6 +29,10 @@ public class Entity : MonoBehaviour
 
     private bool isKnocked;
     private Coroutine knockbackCoroutine;
+
+#region 事件
+    public event Action OnFilpped;    
+#endregion
 
     protected virtual void Awake()
     {
@@ -102,6 +107,8 @@ public class Entity : MonoBehaviour
         transform.Rotate(0f, 180f, 0f);
         facingRight = !facingRight;
         facingDir *= -1;
+
+        OnFilpped?.Invoke();
     }
 
     /// <summary>

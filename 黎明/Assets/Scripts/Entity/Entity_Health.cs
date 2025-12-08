@@ -1,9 +1,11 @@
 using UnityEngine;
+using UnityEngine.UI;
 
 public class Entity_Health : MonoBehaviour,IDamagable
 {
     private Entity_VFX entityVFX;
     private Entity entity;
+    private Slider healthBar;
 
     [SerializeField] protected float maxHP;
     [SerializeField] protected float currentHp;
@@ -22,11 +24,13 @@ public class Entity_Health : MonoBehaviour,IDamagable
     {
         entityVFX = GetComponent<Entity_VFX>();
         entity = GetComponent<Entity>();
+        healthBar = GetComponentInChildren<Slider>();
     }
 
     void Start()
     {
         currentHp = maxHP;
+        UpdateHealthBarUI();
     }
 
     /// <summary>
@@ -52,9 +56,12 @@ public class Entity_Health : MonoBehaviour,IDamagable
     protected void ReduceHP(float damage)
     {
         currentHp -= damage;
+        UpdateHealthBarUI();
         if(currentHp <= 0)
             Die();
     }
+
+    private void UpdateHealthBarUI() => healthBar.value = currentHp/maxHP;
 
     private void Die()
     {
