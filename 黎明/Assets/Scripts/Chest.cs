@@ -15,7 +15,7 @@ public class Chest : MonoBehaviour, IDamagable
         vfx = GetComponent<Entity_VFX>();
     }
 
-    public void TakeDamage(float damage, Transform damageDealer)
+    public bool TakeDamage(float damage, float elementalDamage, Transform damageDealer)
     {
         vfx.PlayOnDamageVFX();
         
@@ -25,6 +25,8 @@ public class Chest : MonoBehaviour, IDamagable
         rb.angularVelocity = Random.Range(-20,20);
 
         rb.simulated = false;
+
+        return true;
 
         //TODO:物品掉落逻辑
     }

@@ -6,8 +6,8 @@ public class Entity_Health : MonoBehaviour,IDamagable
     private Entity_VFX entityVFX;
     private Entity entity;
     private Slider healthBar;
+    private Entity_Stats stats;
 
-    [SerializeField] protected float maxHP;
     [SerializeField] protected float currentHp;
     [SerializeField] protected bool isDead;
 
@@ -24,12 +24,13 @@ public class Entity_Health : MonoBehaviour,IDamagable
     {
         entityVFX = GetComponent<Entity_VFX>();
         entity = GetComponent<Entity>();
+        stats =GetComponent<Entity_Stats>();
         healthBar = GetComponentInChildren<Slider>();
     }
 
     void Start()
     {
-        currentHp = maxHP;
+        currentHp = stats.GetMaxHealth();
         UpdateHealthBarUI();
     }
 
@@ -38,18 +39,41 @@ public class Entity_Health : MonoBehaviour,IDamagable
     /// </summary>
     /// <param name="damage">受到的伤害</param>
     /// <param name="targetDealer">伤害输出者</param>
-    public virtual void TakeDamage(float damage, Transform damageDealer)
+    public virtual bool TakeDamage(float damage, float elementalDamage, Transform damageDealer)
     {
         if(isDead)
-            return;
+            return false;
+        
+        //判断是否可以闪避伤害
+        if(DodgeAttack())
+            return false;
+        
+        Entity_Stats attackerStats = damageDealer.GetComponent<Entity_Stats>();
+        float armorReduction = attackerStats != null ? attackerStats.GetArmorReduction() : 0;
+
+        //处理根据护甲值的减伤逻辑
+        float mitigation = stats.GetArmorMitigation(armorReduction);
+        float finalDamage = damage * (1 - mitigation);
 
         entityVFX?.PlayOnDamageVFX();
 
         //执行受击击退逻辑
-        Vector2 knockback = CalculateKnockback(damage, damageDealer);
-        float duration = CalculateDuration(damage);
+        Vector2 knockback = CalculateKnockback(finalDamage, damageDealer);
+        float duration = CalculateDuration(finalDamage);
         entity.ReciveKnockback(knockback, duration);
-        ReduceHP(damage);
+        ReduceHP(finalDamage + elementalDamage);
+        Debug.Log("元素伤害造成了" + elementalDamage + "点血量");
+        return true;
+    }
+
+
+    /// <summary>
+    /// 闪避攻击
+    /// </summary>
+    /// <returns></returns>
+    private bool DodgeAttack()
+    {
+        return Random.Range(0,100) < stats.GetEvasion();
     }
 
     //扣血逻辑
@@ -61,7 +85,7 @@ public class Entity_Health : MonoBehaviour,IDamagable
             Die();
     }
 
-    private void UpdateHealthBarUI() => healthBar.value = currentHp/maxHP;
+    private void UpdateHealthBarUI() => healthBar.value = currentHp/stats.GetMaxHealth();
 
     private void Die()
     {
@@ -88,5 +112,5 @@ public class Entity_Health : MonoBehaviour,IDamagable
     private float CalculateDuration(float damage) => isHeavyAttack(damage) ? heavyKnockbackDuration : knockbackDuration;
 
     //如果大于阈值，则该攻击为重击
-    private bool isHeavyAttack(float damage) => damage/maxHP > heavyDamageThreshold;
+    private bool isHeavyAttack(float damage) => damage/stats.GetMaxHealth() > heavyDamageThreshold;
 }

@@ -4,6 +4,7 @@ using UnityEngine;
 public class Entity_Combat : MonoBehaviour
 {
     private Entity_VFX entityVFX;
+    private Entity_Stats stats;
     public float damage;
 
     //检测中心点位置
@@ -16,6 +17,7 @@ public class Entity_Combat : MonoBehaviour
     void Awake()
     {
         entityVFX = GetComponent<Entity_VFX>();
+        stats = GetComponent<Entity_Stats>();
     }
 
     /// <summary>
@@ -30,8 +32,11 @@ public class Entity_Combat : MonoBehaviour
             if(damagable == null)
                 continue;
 
-            damagable.TakeDamage(damage,transform);
-            entityVFX.CreateHitVFX(target.transform);
+            float damage = stats.GetPhysicalDamage(out bool isCrit);
+            float elementalDamage = stats.GetElementalDamage();
+            bool targetGotHit = damagable.TakeDamage(damage, elementalDamage, transform);
+            if(targetGotHit)
+                entityVFX.CreateHitVFX(target.transform);
         }
     }
 
