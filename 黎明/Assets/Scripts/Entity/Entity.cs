@@ -29,6 +29,7 @@ public class Entity : MonoBehaviour
 
     private bool isKnocked;
     private Coroutine knockbackCoroutine;
+    private Coroutine slowDownCoroutine;
 
 #region 事件
     public event Action OnFilpped;    
@@ -57,6 +58,20 @@ public class Entity : MonoBehaviour
     public virtual void EntityDeath()
     {
         
+    }
+
+    public virtual void SlowDownEntity(float duration, float slowMultiplier)
+    {
+        if(slowDownCoroutine != null)
+            StopCoroutine(slowDownCoroutine);
+
+        slowDownCoroutine = StartCoroutine(SlowDownEntityCoroutine(duration, slowMultiplier));
+        Debug.Log("造成减速");
+    }
+
+    protected virtual IEnumerator SlowDownEntityCoroutine(float duration, float slowMultiplier) 
+    {
+        yield return null;
     }
 
     public void SetVelocity(float x,float y)

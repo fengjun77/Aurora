@@ -39,7 +39,7 @@ public class Entity_Health : MonoBehaviour,IDamagable
     /// </summary>
     /// <param name="damage">受到的伤害</param>
     /// <param name="targetDealer">伤害输出者</param>
-    public virtual bool TakeDamage(float damage, float elementalDamage, Transform damageDealer)
+    public virtual bool TakeDamage(float damage, float elementalDamage, ElementType element, Transform damageDealer)
     {
         if(isDead)
             return false;
@@ -53,16 +53,19 @@ public class Entity_Health : MonoBehaviour,IDamagable
 
         //处理根据护甲值的减伤逻辑
         float mitigation = stats.GetArmorMitigation(armorReduction);
-        float finalDamage = damage * (1 - mitigation);
-
-        entityVFX?.PlayOnDamageVFX();
+        float physicalDamageTaken = damage * (1 - mitigation);
+        //处理根据元素抗性的减伤逻辑
+        float resistance = stats.GetElementalResistance(element);
+        float elementalDamageTaken = elementalDamage * (1 - resistance);
 
         //执行受击击退逻辑
-        Vector2 knockback = CalculateKnockback(finalDamage, damageDealer);
-        float duration = CalculateDuration(finalDamage);
+        Vector2 knockback = CalculateKnockback(physicalDamageTaken, damageDealer);
+        float duration = CalculateDuration(physicalDamageTaken);
         entity.ReciveKnockback(knockback, duration);
-        ReduceHP(finalDamage + elementalDamage);
-        Debug.Log("元素伤害造成了" + elementalDamage + "点血量");
+
+        ReduceHP(physicalDamageTaken + elementalDamageTaken);
+        Debug.Log(element + "元素伤害造成了" + elementalDamageTaken + "点血量");
+
         return true;
     }
 
@@ -77,8 +80,9 @@ public class Entity_Health : MonoBehaviour,IDamagable
     }
 
     //扣血逻辑
-    protected void ReduceHP(float damage)
+    public void ReduceHP(float damage)
     {
+        entityVFX?.PlayOnDamageVFX();
         currentHp -= damage;
         UpdateHealthBarUI();
         if(currentHp <= 0)

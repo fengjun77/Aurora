@@ -1,6 +1,14 @@
 using Unity.VisualScripting.FullSerializer;
 using UnityEngine;
 
+public enum ElementType
+{
+    None,
+    Fire,
+    Ice,
+    Lightning
+}
+
 public class Entity_Stats : MonoBehaviour
 {
     public Stat maxHp;
@@ -29,7 +37,7 @@ public class Entity_Stats : MonoBehaviour
     /// </summary>
     /// <param name="isCrit">是否暴击</param>
     /// <returns></returns>
-    public float GetPhysicalDamage(out bool isCrit)
+    public float GetPhysicalDamage(out bool isCrit, float scale = 1)
     {
         float baseDamage = offense.damage.GetValue();
         float bonusDamage = major.strength.GetValue() * 8; //每点强壮增加8伤害
@@ -52,14 +60,14 @@ public class Entity_Stats : MonoBehaviour
         
         float finalDamage = isCrit ? totalBaseDamage * (1 + totalCritPower) : totalBaseDamage;
 
-        return finalDamage; 
+        return finalDamage * scale; 
     }
 
     /// <summary>
     /// 获取元素伤害
     /// </summary>
     /// <returns></returns>
-    public float GetElementalDamage()
+    public float GetElementalDamage(out ElementType type, float scale)
     {
         float fireDamage = offense.fireDamage.GetValue();
         float iceDamage = offense.iceDamage.GetValue();
@@ -68,15 +76,25 @@ public class Entity_Stats : MonoBehaviour
         float bonusElementalDamage = major.intelligence.GetValue(); //每点智慧增加一点魔法伤害
 
         float highestDamage = fireDamage;
+        type = ElementType.Fire;
 
         if(iceDamage > highestDamage)
+        {
             highestDamage = iceDamage;
+            type = ElementType.Ice;
+        }
 
         if(lightningDamage > highestDamage)
+        {
             highestDamage = lightningDamage;
+            type = ElementType.Lightning;
+        }
 
         if(highestDamage <= 0)
+        {
+            type = ElementType.None;
             return 0;
+        }
 
         float bonusFire = (fireDamage == highestDamage) ? 0 : fireDamage/2;
         float bonusIce = (iceDamage == highestDamage) ? 0 : iceDamage/2;
@@ -84,7 +102,7 @@ public class Entity_Stats : MonoBehaviour
 
         float finalElementalDamage = highestDamage + bonusElementalDamage + bonusFire + bonusIce + bonusLightning;
 
-        return finalElementalDamage;
+        return finalElementalDamage * scale;
     }
 
     /// <summary>
@@ -118,6 +136,35 @@ public class Entity_Stats : MonoBehaviour
         float finalReduction = offense.armorReduction.GetValue() / 100;
 
         return finalReduction;
+    }
+
+    /// <summary>
+    /// 获取元素抗性
+    /// </summary>
+    /// <returns></returns>
+    public float GetElementalResistance(ElementType element)
+    {
+        float baseResistance = 0;
+        float bonusResistance = major.intelligence.GetValue() * .5f;
+
+        switch(element)
+        {
+            case ElementType.Fire:
+                baseResistance = defense.fireRes.GetValue();
+                break;
+            case ElementType.Ice:
+                baseResistance = defense.iceRes.GetValue();
+                break;
+            case ElementType.Lightning:
+                baseResistance = defense.lightingRes.GetValue();
+                break;    
+        }
+
+        float resistance = baseResistance + bonusResistance;
+        float resistanceCap = 70;
+        float finalResistance = Mathf.Clamp(resistance, 0, resistanceCap);
+    
+        return finalResistance/100;
     }
 
     /// <summary>
