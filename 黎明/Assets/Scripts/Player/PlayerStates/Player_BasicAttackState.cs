@@ -23,8 +23,11 @@ public class Player_BasicAttackState : PlayerState
     {
         base.Enter();
         continueAttack = false;
-
+        //重置连击计时器和索引
         ResetComboIndex();
+
+        //同步攻击速度
+        SyncAttackSpeed();
 
         //如果玩家没有输入方向，则使用面朝方向作为攻击方向
         //否则更具输入的方向，改变玩家的面朝方向

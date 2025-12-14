@@ -4,6 +4,8 @@ using UnityEngine;
 [Serializable]
 public class Stat_Offense
 {
+    public Stat attackSpeed; //攻击速度
+
     //物理伤害
     public Stat damage; //基础伤害
     public Stat critPower; //暴击伤害

@@ -61,7 +61,7 @@ public class Entity_StatusHandler : MonoBehaviour
         if(currentCharge >= maxCharge)
         {
             Instantiate(lightningStrikeVfx, transform.position, Quaternion.identity);
-            health.ReduceHP(damage);
+            health.ReduceHealth(damage);
             StopElectrifyEffect();
             return;
         }
@@ -103,7 +103,7 @@ public class Entity_StatusHandler : MonoBehaviour
 
         for(int i = 0; i < tickCount; i++)
         {
-            health.ReduceHP(damagePerTick);
+            health.ReduceHealth(damagePerTick);
             yield return new WaitForSeconds(tickInterval);
         }
 

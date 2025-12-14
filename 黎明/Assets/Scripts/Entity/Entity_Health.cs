@@ -8,8 +8,12 @@ public class Entity_Health : MonoBehaviour,IDamagable
     private Slider healthBar;
     private Entity_Stats stats;
 
-    [SerializeField] protected float currentHp;
+    [SerializeField] protected float currentHealth;
     [SerializeField] protected bool isDead;
+
+    [Header("生命恢复")]
+    [SerializeField] private float regenInterval = 1f;
+    [SerializeField] private bool canRegenrateHealth = true;
 
     [Header("受击击退")]
     [SerializeField] private Vector2 knockbackPower = new Vector2(2.5f, 3);
@@ -26,12 +30,15 @@ public class Entity_Health : MonoBehaviour,IDamagable
         entity = GetComponent<Entity>();
         stats =GetComponent<Entity_Stats>();
         healthBar = GetComponentInChildren<Slider>();
+
     }
 
     void Start()
     {
-        currentHp = stats.GetMaxHealth();
+        currentHealth = stats.GetMaxHealth();
         UpdateHealthBarUI();
+
+        InvokeRepeating(nameof(RegenerateHealth), 0, regenInterval);
     }
 
     /// <summary>
@@ -63,12 +70,11 @@ public class Entity_Health : MonoBehaviour,IDamagable
         float duration = CalculateDuration(physicalDamageTaken);
         entity.ReciveKnockback(knockback, duration);
 
-        ReduceHP(physicalDamageTaken + elementalDamageTaken);
+        ReduceHealth(physicalDamageTaken + elementalDamageTaken);
         Debug.Log(element + "元素伤害造成了" + elementalDamageTaken + "点血量");
 
         return true;
     }
-
 
     /// <summary>
     /// 闪避攻击
@@ -79,17 +85,48 @@ public class Entity_Health : MonoBehaviour,IDamagable
         return Random.Range(0,100) < stats.GetEvasion();
     }
 
-    //扣血逻辑
-    public void ReduceHP(float damage)
+    /// <summary>
+    /// 自动回血逻辑
+    /// </summary>
+    private void RegenerateHealth()
+    {
+        if(!canRegenrateHealth)
+            return;
+
+        float regenAmount = stats.resources.healthRegen.GetValue();
+        IncreaseHealth(regenAmount);
+    }
+
+    /// <summary>
+    /// 回血逻辑
+    /// </summary>
+    /// <param name="healthAmount"></param>
+    public void IncreaseHealth(float healthAmount)
+    {
+        if(isDead)
+           return;
+
+        float newHealth = currentHealth + healthAmount;
+        float maxHealth = stats.GetMaxHealth();
+
+        currentHealth = Mathf.Min(newHealth, maxHealth);
+        UpdateHealthBarUI();
+    }
+
+    /// <summary>
+    /// 扣血逻辑
+    /// </summary>
+    /// <param name="damage"></param>
+    public void ReduceHealth(float damage)
     {
         entityVFX?.PlayOnDamageVFX();
-        currentHp -= damage;
+        currentHealth -= damage;
         UpdateHealthBarUI();
-        if(currentHp <= 0)
+        if(currentHealth <= 0)
             Die();
     }
 
-    private void UpdateHealthBarUI() => healthBar.value = currentHp/stats.GetMaxHealth();
+    private void UpdateHealthBarUI() => healthBar.value = currentHealth/stats.GetMaxHealth();
 
     private void Die()
     {
