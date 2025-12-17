@@ -6,6 +6,8 @@ public class Player : Entity
 {
     public PlayerInputSet input{ get; private set; }
 
+    private UI ui;
+
     //玩家死亡事件
     public static event Action OnPlayerDeath;
 
@@ -64,6 +66,7 @@ public class Player : Entity
         base.Awake();
 
         input = new PlayerInputSet();
+        ui = FindAnyObjectByType<UI>();
 
         idleState = new Player_IdleState(this, stateMachine, "idle");
         moveState = new Player_MoveState(this, stateMachine, "move");
@@ -85,7 +88,7 @@ public class Player : Entity
         input.Player.Movement.performed += ctx => moveInput = ctx.ReadValue<Vector2>();
         input.Player.Movement.canceled += ctx => moveInput = Vector2.zero;
 
-
+        input.Player.ToggleSkillTreeUI.performed += ctx => ui.ToggleSkillTreeUI();
     }
 
     protected override void Start()

@@ -50,6 +50,15 @@
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": false
+                },
+                {
+                    "name": "ToggleSkillTreeUI",
+                    "type": "Button",
+                    "id": "ea3c12f6-a2bd-4e10-9b60-46e10919215f",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
                 }
             ],
             "bindings": [
@@ -160,6 +169,17 @@
                     "processors": "",
                     "groups": ";Keyboard & Mouse",
                     "action": "CounterAttack",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "ddc9ed9b-c882-49cd-9ccf-8427c060fb23",
+                    "path": "<Keyboard>/l",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": ";Keyboard & Mouse",
+                    "action": "ToggleSkillTreeUI",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }
